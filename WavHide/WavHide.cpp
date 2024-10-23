@@ -2,7 +2,7 @@
 //
 
 #include "WavHide.h"
-#include "DataManipulation/WriteBinaryToTextFile.h"
+#include "DataManipulation/WriteBinary.h"
 #include "DataManipulation/AllocateBytes.h";
 #include "DataManipulation/CountBytes.h";
 
@@ -11,18 +11,22 @@ using namespace std;
 int main()
 {
 	CountBytes countBytes;
-	const int fileBytes = countBytes.Count("C:\\Users\\Aranha\\Downloads\\teste.txt");
+	const int fileBytes = countBytes.Count("C:\\Users\\Aranha\\Downloads\\wonderofu.wav");
 	
 	//first array = bytearray
 	//second array = bits in byte
 	//int file[][8];
-	int** file = (int**)malloc(fileBytes*sizeof(int*));
-	for (int i = 0; i < 8; i++) {
-		file[i] = (int*)malloc(sizeof(int*) * 8);
+	int** file = (int**)malloc(fileBytes * sizeof(int*));
+	for (int i = 0; i < fileBytes; i++) {
+		file[i] = (int*)malloc(8 * sizeof(int));
+
+		for (int j = 0; j < 8; j++) {
+			file[i][j] = j % 2;
+		}
 	}
 	
-	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Downloads\\teste.txt");
+	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Downloads\\wonderofu.wav");
 
-	WriteBinaryToTextFile::Write(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\output.txt");
+	WriteBinary::WriteWav(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\testewavresult.wav", 44100, 2, 16);
 	return 0;
 }

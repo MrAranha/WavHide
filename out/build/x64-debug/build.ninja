@@ -84,7 +84,7 @@ build WavHide\CMakeFiles\WavHide.dir\WavHide.cpp.obj: CXX_COMPILER__WavHide_unsc
   TARGET_COMPILE_PDB = WavHide\CMakeFiles\WavHide.dir\
   TARGET_PDB = WavHide\WavHide.pdb
 
-build WavHide\CMakeFiles\WavHide.dir\DataManipulation\WriteBinaryToTextFile.cpp.obj: CXX_COMPILER__WavHide_unscanned_Debug E$:\WavHide\WavHide\WavHide\DataManipulation\WriteBinaryToTextFile.cpp || cmake_object_order_depends_target_WavHide
+build WavHide\CMakeFiles\WavHide.dir\DataManipulation\WriteBinary.cpp.obj: CXX_COMPILER__WavHide_unscanned_Debug E$:\WavHide\WavHide\WavHide\DataManipulation\WriteBinary.cpp || cmake_object_order_depends_target_WavHide
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
   OBJECT_DIR = WavHide\CMakeFiles\WavHide.dir
   OBJECT_FILE_DIR = WavHide\CMakeFiles\WavHide.dir\DataManipulation
@@ -112,6 +112,13 @@ build WavHide\CMakeFiles\WavHide.dir\BitManipulator.cpp.obj: CXX_COMPILER__WavHi
   TARGET_COMPILE_PDB = WavHide\CMakeFiles\WavHide.dir\
   TARGET_PDB = WavHide\WavHide.pdb
 
+build WavHide\CMakeFiles\WavHide.dir\DataManipulation\WavHeader.cpp.obj: CXX_COMPILER__WavHide_unscanned_Debug E$:\WavHide\WavHide\WavHide\DataManipulation\WavHeader.cpp || cmake_object_order_depends_target_WavHide
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
+  OBJECT_DIR = WavHide\CMakeFiles\WavHide.dir
+  OBJECT_FILE_DIR = WavHide\CMakeFiles\WavHide.dir\DataManipulation
+  TARGET_COMPILE_PDB = WavHide\CMakeFiles\WavHide.dir\
+  TARGET_PDB = WavHide\WavHide.pdb
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target WavHide
@@ -120,7 +127,7 @@ build WavHide\CMakeFiles\WavHide.dir\BitManipulator.cpp.obj: CXX_COMPILER__WavHi
 #############################################
 # Link the executable WavHide\WavHide.exe
 
-build WavHide\WavHide.exe: CXX_EXECUTABLE_LINKER__WavHide_Debug WavHide\CMakeFiles\WavHide.dir\WavHide.cpp.obj WavHide\CMakeFiles\WavHide.dir\DataManipulation\WriteBinaryToTextFile.cpp.obj WavHide\CMakeFiles\WavHide.dir\DataManipulation\AllocateBytes.cpp.obj WavHide\CMakeFiles\WavHide.dir\DataManipulation\CountBytes.cpp.obj WavHide\CMakeFiles\WavHide.dir\BitManipulator.cpp.obj
+build WavHide\WavHide.exe: CXX_EXECUTABLE_LINKER__WavHide_Debug WavHide\CMakeFiles\WavHide.dir\WavHide.cpp.obj WavHide\CMakeFiles\WavHide.dir\DataManipulation\WriteBinary.cpp.obj WavHide\CMakeFiles\WavHide.dir\DataManipulation\AllocateBytes.cpp.obj WavHide\CMakeFiles\WavHide.dir\DataManipulation\CountBytes.cpp.obj WavHide\CMakeFiles\WavHide.dir\BitManipulator.cpp.obj WavHide\CMakeFiles\WavHide.dir\DataManipulation\WavHeader.cpp.obj
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -ZI
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
   LINK_LIBRARIES = kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
