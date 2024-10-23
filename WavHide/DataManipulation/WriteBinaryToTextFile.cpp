@@ -4,6 +4,8 @@
 
 using namespace std;
 
+
+//The purpose of this function is for testing
 void WriteBinaryToTextFile::Write(int** file, int bytes, const char* path_to_file)
 {
 	std::ofstream outFile(path_to_file);
