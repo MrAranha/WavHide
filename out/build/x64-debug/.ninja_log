@@ -1,9 +1,9 @@
 # ninja log v5
-2	703	7513437077479674	WavHide/CMakeFiles/WavHide.dir/WavHide.cpp.obj	27950e2f46b12b63
-704	998	7513437080321444	WavHide/WavHide.exe	305271fa8445e76a
-2	413	7513443430211958	WavHide/CMakeFiles/WavHide.dir/WavHide.cpp.obj	27950e2f46b12b63
-413	558	7513443431360285	WavHide/WavHide.exe	305271fa8445e76a
-2	425	7513450750637906	WavHide/CMakeFiles/WavHide.dir/WavHide.cpp.obj	27950e2f46b12b63
-425	630	7513450752350221	WavHide/WavHide.exe	305271fa8445e76a
-2	416	7513451218224611	WavHide/CMakeFiles/WavHide.dir/WavHide.cpp.obj	27950e2f46b12b63
-417	609	7513451219791141	WavHide/WavHide.exe	305271fa8445e76a
+1	707	7513564533068652	WavHide/CMakeFiles/WavHide.dir/WavHide.cpp.obj	27950e2f46b12b63
+365	513	7513564959126108	WavHide/WavHide.exe	d0abbe4e32313512
+1	364	7513564958001040	WavHide/CMakeFiles/WavHide.dir/WriteBinaryToTextFile.cpp.obj	a3b7e7abca9accbf
+13	368	7513543214795938	WavHide/CMakeFiles/WavHide.dir/DataManipulationTesting/WriteBinaryToTextFile.cpp.obj	628c9884b2126641
+12	422	7513551752398023	WavHide/CMakeFiles/WavHide.dir/DataManipulation/WriteBinaryToTextFile.cpp.obj	743099f4b3fcf933
+13	374	7513565258267421	WavHide/CMakeFiles/WavHide.dir/DataManipulation/WriteBinaryToTextFile.cpp.obj	743099f4b3fcf933
+2	415	7513565258672422	WavHide/CMakeFiles/WavHide.dir/WavHide.cpp.obj	27950e2f46b12b63
+415	585	7513565260024357	WavHide/WavHide.exe	f5867c4a4252fee3
