@@ -444,3 +444,23 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x64-debug/.cmake/api
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+build/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+# Add this line
+./out/
