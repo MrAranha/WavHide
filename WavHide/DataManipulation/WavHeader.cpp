@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
-
+#ifndef MARKER
+#define MARKER
+// declarations 
 typedef struct WAV_HEADER {
     char riffHeader[4];    // "RIFF"
     int wavSize;           // File size - 8 bytes
@@ -16,3 +18,4 @@ typedef struct WAV_HEADER {
     char dataHeader[4];    // "data"
     int dataSize;          // Number of bytes in the data section
 } wav_hdr;
+#endif

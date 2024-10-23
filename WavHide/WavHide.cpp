@@ -3,15 +3,17 @@
 
 #include "WavHide.h"
 #include "DataManipulation/WriteBinary.h"
-#include "DataManipulation/AllocateBytes.h";
-#include "DataManipulation/CountBytes.h";
+#include "DataManipulation/AllocateBytes.h"
+#include "DataManipulation/CountBytes.h"
+#include "DataManipulation/HeaderWavExtractor.h"
+#include "DataManipulation/WavHeader.cpp"
 
 using namespace std;
 
 int main()
 {
 	CountBytes countBytes;
-	const int fileBytes = countBytes.Count("C:\\Users\\Aranha\\Downloads\\wonderofu.wav");
+	const int fileBytes = countBytes.Count("C:\\Users\\Aranha\\Downloads\\wonderofudualchannel.wav");
 	
 	//first array = bytearray
 	//second array = bits in byte
@@ -25,8 +27,8 @@ int main()
 		}
 	}
 	
-	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Downloads\\wonderofu.wav");
+	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Downloads\\wonderofudualchannel.wav");
 
-	WriteBinary::WriteWav(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\testewavresult.wav", 44100, 2, 16);
+	WriteBinary::WriteWav(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\testewavresult.wav");
 	return 0;
 }

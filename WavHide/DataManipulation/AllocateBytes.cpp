@@ -18,7 +18,8 @@ void AllocateBytes::Allocate(int** file, const char* path_to_file)
 		std::bitset<8> binary(val);
 		for (int j = 0; j < 8; j++)
 		{
-			file[i][j] = binary[j];  // Store each bit as an integer (0 or 1)
+			//first val of file[i] is the msb
+			file[i][7 - j] = binary[j];  // Store bits in reverse order (MSB first)
 		}
 		i++;
 	}
