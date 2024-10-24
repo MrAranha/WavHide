@@ -12,6 +12,5 @@ class WriteBinary
 {
 public:
 	static void WriteText(int** file, int bytes, const char* path_to_file);
-	static void WriteJpeg(int** file, int bytes, const char* path_to_file);
-	static void WriteWav(int** file, int bytes, const char* path_to_file);
+	static void WriteFile(int** file, int bytes, const char* path_to_file);
 };

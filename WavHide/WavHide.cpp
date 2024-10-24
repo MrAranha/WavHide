@@ -29,6 +29,6 @@ int main()
 	
 	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Downloads\\wonderofudualchannel.wav");
 
-	WriteBinary::WriteWav(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\testewavresult.wav");
+	WriteBinary::WriteFile(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\testewavresult.wav");
 	return 0;
 }

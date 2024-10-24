@@ -2,7 +2,7 @@
 #include <iostream>
 #ifndef MARKER
 #define MARKER
-// declarations 
+//sizeof(Wav_header) = 44 bytes :)
 typedef struct WAV_HEADER {
     char riffHeader[4];    // "RIFF"
     int wavSize;           // File size - 8 bytes

@@ -27,12 +27,7 @@ void WriteBinary::WriteText(int** file, int bytes, const char* path_to_file)
 	std::cout << "Text file written successfully!" << std::endl;
 }
 
-//Still need to adapt to a jpeg compiler, its not just binary data thrown into a file as a .txt
-void WriteBinary::WriteJpeg(int** file, int bytes, const char* path_to_file)
-{
-}
-
-void WriteBinary::WriteWav(int** file, int bytes, const char* path_to_file) {
+void WriteBinary::WriteFile(int** file, int bytes, const char* path_to_file) {
     std::ofstream outFile(path_to_file, std::ios::binary);
     if (!outFile.is_open()) {
         std::cerr << "Failed to open file for writing" << std::endl;
@@ -48,5 +43,5 @@ void WriteBinary::WriteWav(int** file, int bytes, const char* path_to_file) {
     }
 
     outFile.close();  // Close the file
-    std::cout << "WAV file written successfully!" << std::endl;
+    std::cout << "File written successfully!" << std::endl;
 }
