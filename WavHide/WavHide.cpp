@@ -7,14 +7,16 @@
 #include "DataManipulation/CountBytes.h"
 #include "DataManipulation/HeaderWavExtractor.h"
 #include "DataManipulation/WavHeader.cpp"
+#include "DataManipulation/ExtractByteAsInt.h"
+#include "FileManipulation/ContentEvaluation.h"
 
 using namespace std;
 
 int main()
 {
 	CountBytes countBytes;
-	const int fileBytes = countBytes.Count("C:\\Users\\Aranha\\Downloads\\wonderofudualchannel.wav");
-	
+	const int fileBytes = countBytes.Count("C:\\Users\\Aranha\\Downloads\\anothertest.jpg");
+
 	//first array = bytearray
 	//second array = bits in byte
 	//int file[][8];
@@ -26,9 +28,11 @@ int main()
 			file[i][j] = j % 2;
 		}
 	}
-	
-	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Downloads\\wonderofudualchannel.wav");
 
-	WriteBinary::WriteFile(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\testewavresult.wav");
+	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Downloads\\anothertest.jpg");
+
+	ContentEvaluation::ManipulateJpeg(file, fileBytes);
+
+	WriteBinary::WriteFile(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\anothertestresult.jpg");
 	return 0;
 }
