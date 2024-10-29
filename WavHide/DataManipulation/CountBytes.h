@@ -3,5 +3,5 @@
 
 class CountBytes : BitManipulator {
 public:
-	unsigned int Count(const char* path_to_file);
+	static unsigned int Count(const char* path_to_file);
 };
