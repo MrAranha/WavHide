@@ -14,7 +14,8 @@ using namespace std;
 
 int main()
 {
-	const int fileBytes = CountBytes::Count("C:\\Users\\Aranha\\Desktop\\areatestes\\wonderofu8bit.wav");
+	const char filePath[] = "C:\\Users\\Aranha\\Downloads\\Orchid-_2009-Remaster_.wav";
+	const int fileBytes = CountBytes::Count(filePath);
 
 	//first array = bytearray
 	//second array = bits in byte
@@ -28,11 +29,11 @@ int main()
 		}
 	}
 
-	AllocateBytes::Allocate(file, "C:\\Users\\Aranha\\Desktop\\areatestes\\wonderofu8bit.wav");
+	AllocateBytes::Allocate(file, filePath);
 
 
 	ContentEvaluation::ManipulateWav(file, fileBytes);
 
-	WriteBinary::WriteFile(file, fileBytes, "C:\\Users\\Aranha\\Desktop\\areatestes\\resultteste.wav");
+	WriteBinary::WriteFile(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\resultteste.wav");
 	return 0;
 }
