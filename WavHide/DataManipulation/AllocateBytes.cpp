@@ -20,6 +20,7 @@ void AllocateBytes::Allocate(int** file, const char* path_to_file)
 		{
 			//first val of file[i] is the msb
 			file[i][7 - j] = binary[j];  // Store bits in reverse order (MSB first)
+			//e.g: file[0] = { 0, 0, 0, 0, 0, 0, 0, 1 } where 1 is the least significant bit
 		}
 		i++;
 	}

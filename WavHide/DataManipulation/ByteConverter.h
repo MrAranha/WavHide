@@ -1,3 +1,4 @@
+#pragma once
 class ByteConverter {
 public:
 	static unsigned int ByteToInt(int** data, int byteIndex, int byteCount);

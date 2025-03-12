@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-	const char filePath[] = "C:\\Users\\Aranha\\Downloads\\Orchid-_2009-Remaster_.wav";
+	const char filePath[] = "C:\\Users\\Aranha\\Desktop\\areatestes\\wonderofudualchannel.wav";
 	const int fileBytes = CountBytes::Count(filePath);
 
 	//first array = bytearray
@@ -31,9 +31,10 @@ int main()
 
 	AllocateBytes::Allocate(file, filePath);
 
+	/*ContentEvaluation::WriteTextOnWav(file, fileBytes, "Gone Forever");
 
-	ContentEvaluation::ManipulateWav(file, fileBytes);
-
-	WriteBinary::WriteFile(file, fileBytes, "C:\\Users\\Aranha\\Downloads\\resultteste.wav");
+	WriteBinary::WriteFile(file, fileBytes, "C:\\Users\\Aranha\\Desktop\\areatestes\\resultteste.wav");
+	*/
+	ContentEvaluation::ExtractMessageFromWav(file, fileBytes);
 	return 0;
 }

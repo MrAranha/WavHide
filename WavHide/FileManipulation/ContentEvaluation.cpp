@@ -1,6 +1,9 @@
 #include "ContentEvaluation.h"
 #include "../DataManipulation/ByteConverter.h"
 #include "../DataManipulation/HeaderWavExtractor.h"
+#include "../DataManipulation/ByteConverter.h"
+#include <string.h>
+#include <string>
 
 /*
 the int** data array alone cannot extract meaningful RGB information from a JPEG file. Here's why:
@@ -27,189 +30,108 @@ void ContentEvaluation::ManipulateJpeg(int** file, int fileBytes, int byteIndex)
 	}
 }
 
-void ContentEvaluation::ManipulateWav(int** file, int fileBytes) {
+void ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* textToWrite) {
 	WAV_HEADER header;
 	HeaderWavExtractor::ExtractWAVHeader(file, &header);
 
 	// Calculate the sample size based on bit depth and number of channels
 	int sampleSize = (header.bitsPerSample / 8) * header.numChannels;
-
 	//Process each sample in the file, starting after the header (44 bytes)
 	//For now only halves the samples, but theorethically you could hide info into it
+
+	if (strlen(textToWrite) * 8 > fileBytes)
+	{
+		std::string textNumOfBytesToWrite = std::to_string((strlen(textToWrite) * 8));
+		std::string maxCharacters = std::to_string(fileBytes / 8);
+		throw std::invalid_argument("It is not Possible to write this message within the file, the message size (" + textNumOfBytesToWrite + ") surpasses the total of possible characters writable in file data.\n Maximum Characters: " + maxCharacters);
+	}
+
+	unsigned int currentLetter = 0;
+	unsigned int currentBitOfLetter = 0;
+	//we write in only a single byte of each sample, that does help concealing the message
 	for (int i = 44; i + header.numChannels * (header.bitsPerSample / 8) < fileBytes; i += sampleSize) {
-		for (int channel = 0; channel < header.numChannels; channel++) {
+		for (int channel = 0; channel < header.numChannels; channel++) 
+		{
 			// Calculate the byte index for the current channel
 			int byteIndex = i + (header.bitsPerSample / 8) * channel;
-
-			if (header.bitsPerSample == 16) {
-				// 16-bit signed sample
-				int16_t sampleValue = 0;
-
-				// Read the sample, considering the LSB is the 7th bit
-				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << bit);  // Set bit in LSB
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex + 1][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << (8 + bit)); // Set bit in MSB
-					}
-				}
-
-				// Halve the sample value
-				sampleValue /= 2;
-
-				// Write the modified value back, respecting the LSB
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << bit)) {
-						file[byteIndex][0] |= (1 << (7 - bit)); // Set bit in LSB
-					}
-					else {
-						file[byteIndex][0] &= ~(1 << (7 - bit)); // Clear bit in LSB
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << (8 + bit))) {
-						file[byteIndex + 1][0] |= (1 << (7 - bit)); // Set bit in MSB
-					}
-					else {
-						file[byteIndex + 1][0] &= ~(1 << (7 - bit)); // Clear bit in MSB
+			
+			//Searches for the least valuable byte in a sample to alter, this reduces noise in the resulting file
+			unsigned int leastValuableByteInSample = 0;
+			for (int i = 0; i < header.bitsPerSample / 8; i++)
+			{
+				if (i > 0)
+				{
+					unsigned int latestByte = ByteConverter::ByteToInt(file, byteIndex, 1);
+					unsigned int lastByte = ByteConverter::ByteToInt(file, byteIndex - 1, 1);
+					if (latestByte < lastByte)
+					{
+						leastValuableByteInSample = byteIndex;
 					}
 				}
 			}
-			else if (header.bitsPerSample == 8) {
-				// 8-bit unsigned sample
-				uint8_t sampleValue = static_cast<uint8_t>(file[byteIndex][0]);
-				sampleValue /= 2; // Halve the sample value
-				file[byteIndex][0] = static_cast<int>(sampleValue);
+			unsigned char byteValue = static_cast<unsigned char>(textToWrite[currentLetter]);  // Get the byte value
+			int currentLetterByte[8];
+
+			// Extract bits of the byte and store in the array (MSB first, LSB last)
+			for (int i = 0; i < 8; i++) {
+				currentLetterByte[7 - i] = (byteValue >> i) & 1;  // Extract bit i and store at index (7 - i)
 			}
-			else if (header.bitsPerSample == 24) {
-				// 24-bit signed sample
-				int32_t sampleValue = 0;
 
-				// Read the 3 bytes of the 24-bit sample
+			file[leastValuableByteInSample][7] = currentLetterByte[currentBitOfLetter];
+
+			if (currentBitOfLetter != 7)
+			{
+				currentBitOfLetter++;
+				continue;
+			}
+			currentLetter++;
+			currentBitOfLetter = 0;
+		}
+		if (currentLetter > strlen(textToWrite))
+		{
+			break;
+		}
+	}
+
+}
+
+//Can only halves 8bit and 16bits files (bitsPerSample)
+void ContentEvaluation::WavSampleHalver(int** file, int fileBytes) {
+	WAV_HEADER header;
+	HeaderWavExtractor::ExtractWAVHeader(file, &header);
+
+	int bytesPerSample = header.bitsPerSample / 8;
+	int sampleSize = bytesPerSample * header.numChannels;
+
+	// Start processing after the 44-byte header
+	for (int i = 44; i + sampleSize <= fileBytes; i += sampleSize) {
+		for (int channel = 0; channel < header.numChannels; channel++) {
+			int byteIndex = i + (channel * bytesPerSample);
+
+			int32_t sampleValue = 0; // Use 32-bit int for safety
+
+			// --- Read sample from bitwise structure ---
+			for (int b = 0; b < bytesPerSample; b++) {
 				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << bit);  // Set bit in the first byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex + 1][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << (8 + bit)); // Set bit in the second byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex + 2][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << (16 + bit)); // Set bit in the third byte
-					}
-				}
-
-				// Halve the sample value
-				sampleValue /= 2;
-
-				// Write the modified value back, respecting the LSB
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << bit)) {
-						file[byteIndex][0] |= (1 << (7 - bit)); // Set bit in first byte
-					}
-					else {
-						file[byteIndex][0] &= ~(1 << (7 - bit)); // Clear bit in first byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << (8 + bit))) {
-						file[byteIndex + 1][0] |= (1 << (7 - bit)); // Set bit in second byte
-					}
-					else {
-						file[byteIndex + 1][0] &= ~(1 << (7 - bit)); // Clear bit in second byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << (16 + bit))) {
-						file[byteIndex + 2][0] |= (1 << (7 - bit)); // Set bit in third byte
-					}
-					else {
-						file[byteIndex + 2][0] &= ~(1 << (7 - bit)); // Clear bit in third byte
+					if (file[byteIndex + b][7 - bit]) { // LSB-first
+						sampleValue |= (1 << (b * 8 + bit));
 					}
 				}
 			}
-			else if (header.bitsPerSample == 32) {
-				// 32-bit signed sample
-				int32_t sampleValue = 0;
+			// --- Halve the sample ---
+			sampleValue /= 2;
 
-				// Read the 4 bytes of the 32-bit sample
+			// --- Write back the halved sample ---
+			for (int b = 0; b < bytesPerSample; b++) {
 				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << bit);  // Set bit in first byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex + 1][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << (8 + bit)); // Set bit in second byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex + 2][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << (16 + bit)); // Set bit in third byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (file[byteIndex + 3][0] & (1 << (7 - bit))) {
-						sampleValue |= (1 << (24 + bit)); // Set bit in fourth byte
-					}
-				}
-
-				// Halve the sample value
-				sampleValue /= 2;
-
-				// Write the modified value back, respecting the LSB
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << bit)) {
-						file[byteIndex][0] |= (1 << (7 - bit)); // Set bit in first byte
+					if (sampleValue & (1 << (b * 8 + bit))) {
+						file[byteIndex + b][7 - bit] = 1; // Set bit
 					}
 					else {
-						file[byteIndex][0] &= ~(1 << (7 - bit)); // Clear bit in first byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << (8 + bit))) {
-						file[byteIndex + 1][0] |= (1 << (7 - bit)); // Set bit in second byte
-					}
-					else {
-						file[byteIndex + 1][0] &= ~(1 << (7 - bit)); // Clear bit in second byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << (16 + bit))) {
-						file[byteIndex + 2][0] |= (1 << (7 - bit)); // Set bit in third byte
-					}
-					else {
-						file[byteIndex + 2][0] &= ~(1 << (7 - bit)); // Clear bit in third byte
-					}
-				}
-
-				for (int bit = 0; bit < 8; bit++) {
-					if (sampleValue & (1 << (24 + bit))) {
-						file[byteIndex + 3][0] |= (1 << (7 - bit)); // Set bit in fourth byte
-					}
-					else {
-						file[byteIndex + 3][0] &= ~(1 << (7 - bit)); // Clear bit in fourth byte
+						file[byteIndex + b][7 - bit] = 0; // Clear bit
 					}
 				}
 			}
-			// You can add handling for other bit depths if needed
 		}
 	}
 }
