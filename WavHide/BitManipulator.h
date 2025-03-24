@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <bitset>
+#include <limits>
 
 // TODO: Reference additional headers your program requires here.
 using Byte = unsigned char;
