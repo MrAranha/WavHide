@@ -29,28 +29,117 @@ void ContentEvaluation::ManipulateJpeg(int** file, int fileBytes, int byteIndex)
 
 	}
 }
+int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* textToWrite) {
+	//TODO
+	//VERIFICAR SE MessageLength ESTÁ SENDO ESCRITO CORRETAMENTE
+    WAV_HEADER header;
+    HeaderWavExtractor::ExtractWAVHeader(file, &header);
 
-void ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* textToWrite) {
-	WAV_HEADER header;
-	HeaderWavExtractor::ExtractWAVHeader(file, &header);
+    // Calculate the sample size based on bit depth and number of channels
+    int sampleSize = (header.bitsPerSample / 8) * header.numChannels;
 
-	// Calculate the sample size based on bit depth and number of channels
-	int sampleSize = (header.bitsPerSample / 8) * header.numChannels;
-	//Process each sample in the file, starting after the header (44 bytes)
-	//For now only halves the samples, but theorethically you could hide info into it
+    // Ensure the message does not exceed 9999 bytes
+    size_t messageLength = strlen(textToWrite) + 1;  // Including null terminator
+    if (messageLength > 9999) {
+        throw std::invalid_argument("Message exceeds maximum allowed size of 9998 bytes");
+    }
+    if (strlen(textToWrite) * 8 > fileBytes) {
+        std::string textNumOfBytesToWrite = std::to_string((strlen(textToWrite) * 8));
+        std::string maxCharacters = std::to_string(fileBytes / 8);
+        throw std::invalid_argument("It is not Possible to write this message within the file, the message size (" + textNumOfBytesToWrite + ") surpasses the total of possible characters writable in file data.\n Maximum Characters: " + maxCharacters);
+    }
 
-	if (strlen(textToWrite) * 8 > fileBytes)
-	{
-		std::string textNumOfBytesToWrite = std::to_string((strlen(textToWrite) * 8));
-		std::string maxCharacters = std::to_string(fileBytes / 8);
-		throw std::invalid_argument("It is not Possible to write this message within the file, the message size (" + textNumOfBytesToWrite + ") surpasses the total of possible characters writable in file data.\n Maximum Characters: " + maxCharacters);
+    // FIRST 32 BYTES AFTER HEADER ARE DEDICATED TO STORE INSTRUCTIONS TO DECODE AT MAX A 4096-BIT RSA KEY (3600 BYTES MAX)
+    int lastWrittenByte = (75 * 8 * sampleSize) * 8;  // Start writing from here
+
+    unsigned int currentNum = 0;
+    unsigned int currentBitOfNum = 0;
+    int iterations = 0;
+
+    // Calculate the total number of iterations based on the sampleSize
+    int totalIterations = 32 * 8 * sampleSize;
+
+    // Iterating down from lastWrittenByte towards 44 bytes, we stop exactly at byte 44.
+    for (int i = lastWrittenByte; i >= 44 && iterations < totalIterations; i -= sampleSize) {
+
+    	if (currentNum >= messageLength) {
+    		break;
+    	}
+		//TODO
+    	//CHECK IF DUAL CHANNEL ITERATIONS ARE WORKING
+    	for (int channel = 1; channel < header.numChannels + 1; channel++) {
+            int byteIndex = i + (header.bitsPerSample / 8) * channel;
+            unsigned int leastValuableByteInSample = 0;
+
+            // Find the least valuable byte in the sample
+            for (int j = 0; j < header.bitsPerSample / 8; j++) {
+                if (j > 0) {
+                    unsigned int latestByte = ByteConverter::ByteToInt(file, byteIndex, 1);
+                    unsigned int lastByte = ByteConverter::ByteToInt(file, byteIndex - 1, 1);
+                    if (latestByte < lastByte) {
+                        leastValuableByteInSample = byteIndex;
+                    }
+                }
+            }
+
+
+            // Get the bit to store (based on the current byte)
+            int byteValue = (messageLength >> currentNum) & 1;  // Get the byte value
+            int currentNumByte[8];
+
+            // Extract bits of the byte and store in the array (MSB first, LSB last)
+            for (int i = 0; i < 8; i++) {
+                currentNumByte[7 - i] = (byteValue >> i) & 1;  // Extract bit i and store at index (7 - i)
+            }
+
+            // Write the bit to the least valuable byte in the sample
+            file[leastValuableByteInSample][7] = currentNumByte[currentBitOfNum];
+            std::cout << file[leastValuableByteInSample][7] << std::endl;
+
+            // Move to the next bit if needed
+            if (currentBitOfNum != 7) {
+                currentBitOfNum++;
+                continue;
+            }
+
+            currentNum++;
+            currentBitOfNum = 0;
+        }
+    	lastWrittenByte = i;
+        iterations++;  // Increment the iteration count
+    }
+	int remover = 0;
+	for (int i = 44; i + header.numChannels * (header.bitsPerSample / 8) < lastWrittenByte; i += sampleSize) {
+		for (int channel = 1; channel < header.numChannels + 1; channel++) {
+
+			// Calculate the byte index for the current channel
+			int byteIndex = i + (header.bitsPerSample / 8) * channel;
+
+			//Searches for the least valuable byte in a sample to alter, this reduces noise in the resulting file
+			unsigned int leastValuableByteInSample = 0;
+			for (int i = 0; i < header.bitsPerSample / 8; i++)
+			{
+				if (i > 0)
+				{
+					unsigned int latestByte = ByteConverter::ByteToInt(file, byteIndex, 1);
+					unsigned int lastByte = ByteConverter::ByteToInt(file, byteIndex - 1, 1);
+					if (latestByte < lastByte)
+					{
+						leastValuableByteInSample = byteIndex;
+					}
+				}
+			}
+			file[leastValuableByteInSample][7] = 0;
+            std::cout << file[leastValuableByteInSample][7] << std::endl;
+		}
+		remover++;
 	}
 
 	unsigned int currentLetter = 0;
 	unsigned int currentBitOfLetter = 0;
 	//we write in only a single byte of each sample, that does help concealing the message
-	for (int i = 44; i + header.numChannels * (header.bitsPerSample / 8) < fileBytes; i += sampleSize) {
-		for (int channel = 0; channel < header.numChannels; channel++) 
+	for (int i = (75 * 8 * sampleSize) * 8; i + header.numChannels * (header.bitsPerSample / 8) < fileBytes; i += sampleSize) {
+		for (int channel = 1; channel < header.numChannels + 1; channel++)
 		{
 			// Calculate the byte index for the current channel
 			int byteIndex = i + (header.bitsPerSample / 8) * channel;
@@ -92,7 +181,7 @@ void ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* te
 			break;
 		}
 	}
-
+	return file;
 }
 
 //Can only halves 8bit and 16bits files (bitsPerSample)

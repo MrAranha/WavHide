@@ -14,7 +14,7 @@ using namespace std;
 
 int main()
 {
-	const char filePath[] = "/home/aranha/Documents/WavHideFiles/wonderofu.wav";
+	const char filePath[] = "/home/aranha/Documents/WavHideFiles/wonderofusinglechannvel.wav";
 	const int fileBytes = CountBytes::Count(filePath);
 
 	//first array = bytearray
@@ -30,11 +30,7 @@ int main()
 	}
 
 	AllocateBytes::Allocate(file, filePath);
-
-	ContentEvaluation::WriteTextOnWav(file, fileBytes, "Gone Forever");
-
-	WriteBinary::WriteFile(file, fileBytes, "/home/aranha/Documents/WavHideFiles/resultteste.wav");
-
+	WriteBinary::WriteFile(ContentEvaluation::WriteTextOnWav(file, fileBytes, "to be born"), fileBytes, "/home/aranha/Documents/WavHideFiles/resultteste.wav");
 	//ContentEvaluation::ExtractMessageFromWav(file, fileBytes);
 	return 0;
 }
