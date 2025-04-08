@@ -15,8 +15,8 @@ using bits_in_byte = std::bitset<BITS_PER_BYTE>;  // Alias for bit representatio
 class BitManipulator {
 protected:
     // Converts a bitset to a byte
-    Byte bitsetToByte(const bits_in_byte& bitset) const;
+    static Byte bitsetToByte(const bits_in_byte& bitset) ;
 
     // Converts an array of bits (e.g., int[8]) to a byte
-    Byte bitsArrayToByte(const int* bitsArray) const;
+    static Byte bitsArrayToByte(const int* bitsArray) ;
 };
