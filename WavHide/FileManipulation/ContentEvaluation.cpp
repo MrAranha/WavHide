@@ -4,6 +4,8 @@
 #include "../DataManipulation/ByteConverter.h"
 #include <string.h>
 #include <string>
+#include <cmath>  // For log10
+#include <bitset>  // For bitset functionality
 
 /*
 the int** data array alone cannot extract meaningful RGB information from a JPEG file. Here's why:
@@ -52,8 +54,7 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
     // FIRST 32 BYTES AFTER HEADER ARE DEDICATED TO STORE INSTRUCTIONS TO DECODE AT MAX A 4096-BIT RSA KEY (3600 BYTES MAX)
     int lastWrittenByte = (75 * 8 * sampleSize) * 8;  // Start writing from here
 
-    unsigned int currentNum = 0;
-    unsigned int currentBitOfNum = 0;
+    unsigned int currentBit = 0;
     int iterations = 0;
 
     // Calculate the total number of iterations based on the sampleSize
@@ -62,48 +63,48 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
     // Iterating down from lastWrittenByte towards 44 bytes, we stop exactly at byte 44.
     for (int i = lastWrittenByte; i >= 44 && iterations < totalIterations; i -= sampleSize) {
 
-    	if (currentNum >= messageLength) {
+    	if (currentBit >= sizeof(messageLength)*8) {
     		break;
     	}
 		//TODO
     	//CHECK IF DUAL CHANNEL ITERATIONS ARE WORKING
     	for (int channel = 1; channel < header.numChannels + 1; channel++) {
             int byteIndex = i + (header.bitsPerSample / 8) * channel;
-            unsigned int leastValuableByteInSample = 0;
+            unsigned int leastValuableByteInSample = byteIndex;
 
-            // Find the least valuable byte in the sample
-            for (int j = 0; j < header.bitsPerSample / 8; j++) {
-                if (j > 0) {
-                    unsigned int latestByte = ByteConverter::ByteToInt(file, byteIndex, 1);
-                    unsigned int lastByte = ByteConverter::ByteToInt(file, byteIndex - 1, 1);
-                    if (latestByte < lastByte) {
-                        leastValuableByteInSample = byteIndex;
-                    }
-                }
-            }
+    		if (header.bitsPerSample/8 >= 2) {
+    			unsigned int latestByte;
+    			unsigned int lastByte;
+    			int bytesPerSample = header.bitsPerSample / 8;
+    			int iterations = 0;
+    			for (int j = byteIndex; iterations < bytesPerSample ; j--) {
+    				if (iterations > 0) {
+    					latestByte = ByteConverter::ByteToInt(file, j, 1);
+    					lastByte = ByteConverter::ByteToInt(file, (j - 1), 1);
+    					if (latestByte < lastByte) {
+    						leastValuableByteInSample = byteIndex;
+    					}
+    				}
+    				iterations++;
+    			}
 
+    		}
 
-            // Get the bit to store (based on the current byte)
-            int byteValue = (messageLength >> currentNum) & 1;  // Get the byte value
-            int currentNumByte[8];
-
-            // Extract bits of the byte and store in the array (MSB first, LSB last)
-            for (int i = 0; i < 8; i++) {
-                currentNumByte[7 - i] = (byteValue >> i) & 1;  // Extract bit i and store at index (7 - i)
-            }
-
+    		//easier to debug this way
+    		std::string binaryString = std::bitset<sizeof(size_t) * 8>(messageLength).to_string().substr(std::bitset<sizeof(size_t) * 8>(messageLength).to_string().find('1'));
+			char zero = '0';
+    		char one = '1';
+    		int currentBitValue = 0;
+    		if (binaryString[currentBit] == one && binaryString.size() > currentBit) {
+    			currentBitValue = 1;
+    		}
+    		else if (binaryString[currentBit] == zero && binaryString.size() > currentBit) {
+    			currentBitValue = 0;
+    		}
             // Write the bit to the least valuable byte in the sample
-            file[leastValuableByteInSample][7] = currentNumByte[currentBitOfNum];
+            file[leastValuableByteInSample][7] = currentBitValue;
             std::cout << file[leastValuableByteInSample][7] << std::endl;
-
-            // Move to the next bit if needed
-            if (currentBitOfNum != 7) {
-                currentBitOfNum++;
-                continue;
-            }
-
-            currentNum++;
-            currentBitOfNum = 0;
+    		currentBit++;
         }
     	lastWrittenByte = i;
         iterations++;  // Increment the iteration count
@@ -115,20 +116,25 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
 			// Calculate the byte index for the current channel
 			int byteIndex = i + (header.bitsPerSample / 8) * channel;
 
-			//Searches for the least valuable byte in a sample to alter, this reduces noise in the resulting file
-			unsigned int leastValuableByteInSample = 0;
-			for (int i = 0; i < header.bitsPerSample / 8; i++)
-			{
-				if (i > 0)
-				{
-					unsigned int latestByte = ByteConverter::ByteToInt(file, byteIndex, 1);
-					unsigned int lastByte = ByteConverter::ByteToInt(file, byteIndex - 1, 1);
-					if (latestByte < lastByte)
-					{
-						leastValuableByteInSample = byteIndex;
-					}
-				}
-			}
+			unsigned int leastValuableByteInSample = byteIndex;
+    		if (header.bitsPerSample/8 >= 2) {
+    			unsigned int latestByte;
+    			unsigned int lastByte;
+    			int bytesPerSample = header.bitsPerSample / 8;
+    			int iterations = 0;
+    			for (int j = byteIndex; iterations < bytesPerSample ; j--) {
+    				if (iterations > 0) {
+    					latestByte = ByteConverter::ByteToInt(file, j, 1);
+    					lastByte = ByteConverter::ByteToInt(file, (j - 1), 1);
+    					if (latestByte < lastByte) {
+    						leastValuableByteInSample = byteIndex;
+    					}
+    				}
+    				iterations++;
+    			}
+
+    		}
+
 			file[leastValuableByteInSample][7] = 0;
             std::cout << file[leastValuableByteInSample][7] << std::endl;
 		}
@@ -143,20 +149,24 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
 		{
 			// Calculate the byte index for the current channel
 			int byteIndex = i + (header.bitsPerSample / 8) * channel;
-			
-			//Searches for the least valuable byte in a sample to alter, this reduces noise in the resulting file
-			unsigned int leastValuableByteInSample = 0;
-			for (int i = 0; i < header.bitsPerSample / 8; i++)
-			{
-				if (i > 0)
-				{
-					unsigned int latestByte = ByteConverter::ByteToInt(file, byteIndex, 1);
-					unsigned int lastByte = ByteConverter::ByteToInt(file, byteIndex - 1, 1);
-					if (latestByte < lastByte)
-					{
-						leastValuableByteInSample = byteIndex;
+
+			unsigned int leastValuableByteInSample = byteIndex;
+			if (header.bitsPerSample/8 >= 2) {
+				unsigned int latestByte;
+				unsigned int lastByte;
+				int bytesPerSample = header.bitsPerSample / 8;
+				int iterations = 0;
+				for (int j = byteIndex; iterations < bytesPerSample ; j--) {
+					if (iterations > 0) {
+						latestByte = ByteConverter::ByteToInt(file, j, 1);
+						lastByte = ByteConverter::ByteToInt(file, (j - 1), 1);
+						if (latestByte < lastByte) {
+							leastValuableByteInSample = byteIndex;
+						}
 					}
+					iterations++;
 				}
+
 			}
 			unsigned char byteValue = static_cast<unsigned char>(textToWrite[currentLetter]);  // Get the byte value
 			int currentLetterByte[8];
@@ -223,4 +233,141 @@ void ContentEvaluation::WavSampleHalver(int** file, int fileBytes) {
 			}
 		}
 	}
+}
+/*char* ContentEvaluation::ExtractMessageFromWav(int** file, int fileBytes) {
+	char* message = {};
+	WAV_HEADER header;
+	HeaderWavExtractor::ExtractWAVHeader(file, &header);
+
+	// Calculate the sample size based on bit depth and number of channels
+	int sampleSize = (header.bitsPerSample / 8) * header.numChannels;
+
+
+    int iterations = 0;
+	int currentBit = 0;
+    // Calculate the total number of iterations based on the sampleSize
+    int totalIterations = 32 * 8 * sampleSize;
+	char byteSizeCodedMessage[4];
+	int fileSizeBit[8];
+    // Iterating down from lastWrittenByte towards 44 bytes, we stop exactly at byte 44.
+    for (int i = (75 * 8 * sampleSize) * 8; i >= 44 && iterations < totalIterations; i -= sampleSize) {
+
+		//TODO
+    	//CHECK IF DUAL CHANNEL ITERATIONS ARE WORKING
+    	for (int channel = 1; channel < header.numChannels + 1; channel++) {
+            int byteIndex = i + (header.bitsPerSample / 8) * channel;
+            unsigned int leastValuableByteInSample = 0;
+
+            // Find the least valuable byte in the sample
+            for (int j = 0; j < header.bitsPerSample / 8; j++) {
+                if (j > 0) {
+                    unsigned int latestByte = ByteConverter::ByteToInt(file, byteIndex, 1);
+                    unsigned int lastByte = ByteConverter::ByteToInt(file, byteIndex - 1, 1);
+                    if (latestByte < lastByte) {
+                        leastValuableByteInSample = byteIndex;
+                    }
+                }
+            }
+    		if (iterations % 8 == 0 && iterations != 0) {
+
+    			int value = 0;
+
+    			// Convert little-endian bit array to integer
+    			for (int i = 0; i < 8; i++) {
+    				value |= (fileSizeBit[i] << i);
+    			}
+
+    			// Ensure it's within ASCII digit range (0-9)
+    			if (value < 0 || value > 9) {
+    				throw std::invalid_argument("No Steganography identified on this file");
+    			}
+    			byteSizeCodedMessage[(iterations/8) - 1] = static_cast<char>(value);
+    			memset(fileSizeBit, 0, sizeof(fileSizeBit));
+    		}
+
+
+            // Write the bit to the least valuable byte in the sample
+            fileSizeBit[currentBit] = file[leastValuableByteInSample][7];
+
+        }
+        iterations++;  // Increment the iteration count
+		if (currentBit == 7) {
+			currentBit = 0;
+			continue;
+		}
+    	currentBit++;
+    }
+	for (int i = 0; i < 4; i++) {
+		std::cout << byteSizeCodedMessage[i] << std::endl;
+	}
+	return message;
+}
+*/
+
+std::string ContentEvaluation::ExtractMessageFromWav(int** file, int fileBytes) {
+    WAV_HEADER header;
+    HeaderWavExtractor::ExtractWAVHeader(file, &header);
+
+    // Calculate the sample size based on bit depth and number of channels
+    int sampleSize = (header.bitsPerSample / 8) * header.numChannels;
+	std::string bitsetResult;
+    // Reading the message length from the first few bytes
+    int messageLengthBits = 0;
+    unsigned int currentBitOfNum = 0;
+    unsigned int currentNum = 0;
+	int totalIterations = 32 * 8 * sampleSize;
+	int iterations = 0;
+    int lastReadByte = (75 * 8 * sampleSize) * 8;  // Start reading from here
+    // Assuming the first 32 bits after the header store the length of the message (based on your description)
+    for (int i = lastReadByte; i >= 44 && iterations < totalIterations; i -= sampleSize) {
+        for (int channel = 1; channel <= header.numChannels; channel++) {
+            int byteIndex = i + (header.bitsPerSample / 8) * channel;
+
+        	unsigned int leastValuableByteInSample = byteIndex;
+
+        	if (header.bitsPerSample/8 >= 2) {
+        		unsigned int latestByte;
+        		unsigned int lastByte;
+        		for (int j = byteIndex; j > j - header.bitsPerSample / 8; j--) {
+        			latestByte = ByteConverter::ByteToInt(file, j, 1);
+        			lastByte = ByteConverter::ByteToInt(file, j - 1, 1);
+        			if (latestByte < lastByte) {
+        				leastValuableByteInSample = byteIndex;
+        			}
+        		}
+
+        	}
+            // Extract the bit corresponding to the message length
+            int bitValue = file[leastValuableByteInSample][7]; // Getting the 7th bit of each byte
+        	bitsetResult += std::to_string(bitValue);
+        	iterations++;
+        }
+    	lastReadByte = i;
+    }
+
+    // Now, read the actual message content
+    std::string message = "";
+    currentNum = 0;
+    currentBitOfNum = 0;
+
+    // Iterate over the bytes where the message is stored
+    for (int i = (75 * 8 * sampleSize) * 8; i < fileBytes && i < 0/*TODO TROCAR ESSE ZERO PELO RESULT TRANSFORMADO EM INT*/; i += sampleSize) {
+        for (int channel = 1; channel <= header.numChannels; channel++) {
+            int byteIndex = i + (header.bitsPerSample / 8) * channel;
+
+            unsigned char byteValue = 0;
+            for (int j = 0; j < 8; j++) {
+                byteValue |= (file[byteIndex][7 - j] << j); // Reconstruct the byte (MSB to LSB)
+            }
+
+            // Append the byte to the message
+            message += byteValue;
+
+            if (message.length() >= 0) {
+                return message;
+            }
+        }
+    }
+
+    throw std::invalid_argument("Message length exceeds available space in the file.");
 }

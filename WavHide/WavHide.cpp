@@ -1,20 +1,46 @@
-﻿// WavHide.cpp : Defines the entry point for the application.
-//
-
-#include "WavHide.h"
+﻿#include "WavHide.h"
 #include "DataManipulation/WriteBinary.h"
-#include "DataManipulation/AllocateBytes.h"
 #include "DataManipulation/CountBytes.h"
-#include "DataManipulation/HeaderWavExtractor.h"
 #include "DataManipulation/WavHeader.cpp"
-#include "DataManipulation/ByteConverter.h"
 #include "FileManipulation/ContentEvaluation.h"
 
-using namespace std;
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <stdio.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
-int main()
-{
-	const char filePath[] = "/home/aranha/Documents/WavHideFiles/wonderofusinglechannvel.wav";
+#include "DataManipulation/AllocateBytes.h"
+
+using namespace std;
+#include <stdio.h>
+
+#include <stdlib.h>
+
+#include <unistd.h>
+
+
+int main(int argc, char *argv[]) {
+	/*
+	int opt;
+	while ((opt = getopt(argc, argv, "hvf:")) != -1) {
+		switch (opt) {
+			case 'h':
+				printf("Usage: %s [-h] [-v] [-f filename]\n", argv[0]);
+			exit(0);
+			case 'v':
+				printf("Verbose mode enabled.\n");
+			break;
+			case 'f':
+				printf("Processing file: %s\n", optarg);
+			break;
+			default:
+				fprintf(stderr, "Usage: %s [-h] [-v] [-f filename]\n", argv[0]);
+			exit(EXIT_FAILURE);
+		}
+	}*/
+
+	const char filePath[] = "/home/aranha/Documents/WavHideFiles/resultteste.wav";
 	const int fileBytes = CountBytes::Count(filePath);
 
 	//first array = bytearray
@@ -30,7 +56,11 @@ int main()
 	}
 
 	AllocateBytes::Allocate(file, filePath);
-	WriteBinary::WriteFile(ContentEvaluation::WriteTextOnWav(file, fileBytes, "to be born"), fileBytes, "/home/aranha/Documents/WavHideFiles/resultteste.wav");
-	//ContentEvaluation::ExtractMessageFromWav(file, fileBytes);
+
+
+	std::ifstream textFile("/home/aranha/Documents/WavHideFiles/private_key.pem"); // Open in text mode (default)
+	std::string content((std::istreambuf_iterator<char>(textFile)), std::istreambuf_iterator<char>());
+	WriteBinary::WriteFile(ContentEvaluation::WriteTextOnWav(file, fileBytes, content.c_str()), fileBytes, "/home/aranha/Documents/WavHideFiles/resultteste.wav");
+	//*/ContentEvaluation::ExtractMessageFromWav(file, fileBytes);
 	return 0;
 }
