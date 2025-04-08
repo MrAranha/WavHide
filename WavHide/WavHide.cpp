@@ -58,9 +58,14 @@ int main(int argc, char *argv[]) {
 	AllocateBytes::Allocate(file, filePath);
 
 
-	std::ifstream textFile("/home/aranha/Documents/WavHideFiles/private_key.pem"); // Open in text mode (default)
+	/*std::ifstream textFile("/home/aranha/Documents/WavHideFiles/private_key.pem"); // Open in text mode (default)
 	std::string content((std::istreambuf_iterator<char>(textFile)), std::istreambuf_iterator<char>());
 	WriteBinary::WriteFile(ContentEvaluation::WriteTextOnWav(file, fileBytes, content.c_str()), fileBytes, "/home/aranha/Documents/WavHideFiles/resultteste.wav");
-	//*/ContentEvaluation::ExtractMessageFromWav(file, fileBytes);
+	//*/
+	//Write result
+	std::string SSHKEY = ContentEvaluation::ExtractMessageFromWav(file, fileBytes);
+	std::ofstream out("/home/aranha/Documents/WavHideFiles/resultteste.pem");
+	out << SSHKEY;
+	out.close();
 	return 0;
 }
