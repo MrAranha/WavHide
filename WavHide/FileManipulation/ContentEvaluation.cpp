@@ -1,4 +1,7 @@
 #include "ContentEvaluation.h"
+
+#include <algorithm>
+
 #include "../DataManipulation/ByteConverter.h"
 #include "../DataManipulation/HeaderWavExtractor.h"
 #include "../DataManipulation/ByteConverter.h"
@@ -55,7 +58,11 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
     // FIRST 32 BYTES AFTER HEADER ARE DEDICATED TO STORE INSTRUCTIONS TO DECODE AT MAX A 4096-BIT RSA KEY (3600 BYTES MAX)
     int lastWrittenByte = (75 * 8 * sampleSize) * 8;  // Start writing from here
 
-    unsigned int currentBit = 0;
+	// we do this to start writing by the lsb
+	unsigned int currentBit = (std::bitset<sizeof(size_t) * 8>(messageLength).to_string()
+	.substr(std::bitset<sizeof(size_t) * 8>(messageLength).to_string().find('1'))).length();
+	currentBit--;
+
     int iterations = 0;
 
     // Calculate the total number of iterations based on the sampleSize
@@ -64,12 +71,13 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
     // Iterating down from lastWrittenByte towards 44 bytes, we stop exactly at byte 44.
     for (int i = lastWrittenByte; i >= 44 && iterations < totalIterations; i -= sampleSize) {
 
-    	if (currentBit >= sizeof(messageLength)*8) {
+    	if (currentBit < 0) {
     		break;
     	}
 		//TODO
     	//CHECK IF DUAL CHANNEL ITERATIONS ARE WORKING
     	for (int channel = 1; channel < header.numChannels + 1; channel++) {
+
             int byteIndex = i + (header.bitsPerSample / 8) * channel;
             unsigned int leastValuableByteInSample = byteIndex;
 
@@ -108,10 +116,16 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
             // Write the bit to the least valuable byte in the sample
             file[leastValuableByteInSample][7] = currentBitValue;
 			std::cout << file[leastValuableByteInSample][7] << std::endl;
-    		currentBit++;
+    		if (currentBit == 0) {
+    			break;
+    		}
+    		currentBit--;
+			iterations++;  // Increment the iteration count
         }
+    	if (currentBit == 0) {
+    		break;
+    	}
     	lastWrittenByte = i;
-        iterations++;  // Increment the iteration count
     }
 	int remover = 0;
 	//after the for we made we zero all LSB from 44 to the fist one
@@ -249,6 +263,7 @@ std::string ContentEvaluation::ExtractMessageFromWav(int** file, int fileBytes) 
 	size_t lastOnePos = bitsetResult.find_last_not_of('0');
 	bitsetResult.erase(lastOnePos +1);
 
+	std::reverse(bitsetResult.begin(), bitsetResult.end());
 	int fileSize = std::stoi(bitsetResult, nullptr, 2);
 	std::string message;
 
