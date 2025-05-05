@@ -6,8 +6,6 @@
 #include <iostream>
 #include "WavHeader.cpp"
 
-// TODO: Reference additional headers your program requires here.
-
 class WriteBinary
 {
 public:

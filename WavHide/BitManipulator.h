@@ -7,7 +7,6 @@
 #include <bitset>
 #include <limits>
 
-// TODO: Reference additional headers your program requires here.
 using Byte = unsigned char;
 constexpr std::size_t BITS_PER_BYTE = std::numeric_limits<Byte>::digits;
 using bits_in_byte = std::bitset<BITS_PER_BYTE>;  // Alias for bit representation of a byte

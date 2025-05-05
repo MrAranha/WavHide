@@ -36,14 +36,13 @@ void ContentEvaluation::ManipulateJpeg(int** file, int fileBytes, int byteIndex)
 	}
 }
 int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* textToWrite) {
-	//TODO
-	//VERIFICAR SE MessageLength ESTÁ SENDO ESCRITO CORRETAMENTE
-    WAV_HEADER header;
+	WAV_HEADER header;
     HeaderWavExtractor::ExtractWAVHeader(file, &header);
 
     // Calculate the sample size based on bit depth and number of channels
     int sampleSize = (header.bitsPerSample / 8) * header.numChannels;
 
+	//TODO modify const char* textToWrite to a file** and find a way to prevent the hidden file do not exceeding the original
     // Ensure the message does not exceed 9999 bytes
     size_t messageLength = strlen(textToWrite) + 1;  // Including null terminator
     if (messageLength > 9999) {
@@ -74,8 +73,6 @@ int** ContentEvaluation::WriteTextOnWav(int** file, int fileBytes, const char* t
     	if (currentBit < 0) {
     		break;
     	}
-		//TODO
-    	//CHECK IF DUAL CHANNEL ITERATIONS ARE WORKING
     	for (int channel = 1; channel < header.numChannels + 1; channel++) {
 
             int byteIndex = i + (header.bitsPerSample / 8) * channel;
