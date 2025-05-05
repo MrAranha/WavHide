@@ -221,10 +221,6 @@ std::string ContentEvaluation::ExtractMessageFromWav(int** file, int fileBytes) 
     // Calculate the sample size based on bit depth and number of channels
     int sampleSize = (header.bitsPerSample / 8) * header.numChannels;
 	std::string bitsetResult;
-    // Reading the message length from the first few bytes
-    int messageLengthBits = 0;
-    unsigned int currentBitOfNum = 0;
-    unsigned int currentNum = 0;
 	int totalIterations = 32 * 8 * sampleSize;
 	int iterations = 0;
     int lastReadByte = (75 * 8 * sampleSize) * 8;  // Start reading from here
